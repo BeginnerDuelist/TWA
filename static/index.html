@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="ro">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Movie Watchlist</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: #0f0f1a;
+            color: #f2f2f2;
+            min-height: 100vh;
+        }
+        .navbar-brand {
+            color: #e50914 !important;
+            font-weight: 700;
+        }
+        .card-dark {
+            background: #1a1a2e;
+            border: 1px solid #2a2a40;
+            color: #f8f9fa;
+        }
+        .text-accent {
+            color: #e50914;
+        }
+        .btn-accent {
+            background: #e50914;
+            border-color: #e50914;
+            color: white;
+        }
+        .btn-accent:hover {
+            background: #bf0811;
+            border-color: #bf0811;
+            color: white;
+        }
+        .badge-vazut {
+            background-color: #198754;
+        }
+        .badge-nevazut {
+            background-color: #6c757d;
+        }
+        .descriere-trunchiata {
+            min-height: 3rem;
+        }
+        .rating-star {
+            cursor: pointer;
+            font-size: 1.25rem;
+            color: #6c757d;
+            margin-right: 2px;
+        }
+        .rating-star.active {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top border-bottom border-secondary-subtle">
+    <div class="container">
+        <a class="navbar-brand" href="#">🎬 Movie Watchlist</a>
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <span id="emailUtilizator" class="small text-light"></span>
+            <span id="contorFilme" class="small text-secondary"></span>
+            <button id="btnDeconectare" class="btn btn-outline-light btn-sm d-none" onclick="deconecteaza()">Deconectare</button>
+        </div>
+    </div>
+</nav>
+
+<main class="container py-4" style="margin-top: 80px;">
+    <section id="sectiuneAuth" class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-5">
+            <div class="card card-dark shadow">
+                <div class="card-body">
+                    <ul class="nav nav-tabs mb-3" id="taburiAuth">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabLogin" type="button">Login</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabInregistrare" type="button">Înregistrare</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="tabLogin">
+                            <form onsubmit="autentifica(event)">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input id="loginEmail" type="email" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Parolă</label>
+                                    <input id="loginParola" type="password" class="form-control" required>
+                                </div>
+                                <button class="btn btn-accent w-100" type="submit">Autentificare</button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="tabInregistrare">
+                            <form onsubmit="inregistreaza(event)">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input id="regEmail" type="email" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Parolă (minim 6 caractere)</label>
+                                    <input id="regParola" type="password" class="form-control" minlength="6" required>
+                                </div>
+                                <button class="btn btn-accent w-100" type="submit">Creează cont</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="sectiuneApp" class="d-none">
+        <div class="card card-dark mb-4">
+            <div class="card-body d-flex flex-column flex-md-row gap-2 align-items-md-center">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="filtruNevazute" onchange="incarcaFilme()">
+                    <label class="form-check-label" for="filtruNevazute">Doar nevăzute</label>
+                </div>
+                <select id="filtruGen" class="form-select form-select-sm w-auto" onchange="incarcaFilme()">
+                    <option value="">Toate genurile</option>
+                    <option>Acțiune</option>
+                    <option>Comedie</option>
+                    <option>SF</option>
+                    <option>Horror</option>
+                    <option>Drama</option>
+                </select>
+                <button class="btn btn-accent btn-sm ms-md-auto" data-bs-toggle="modal" data-bs-target="#modalAdauga">
+                    <i class="bi bi-plus-circle"></i> Adaugă film
+                </button>
+            </div>
+        </div>
+
+        <div id="listaFilme" class="row g-3"></div>
+    </section>
+</main>
+
+<div class="modal fade" id="modalAdauga" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content card-dark">
+            <form onsubmit="adaugaFilm(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adaugă film</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label">Titlu</label>
+                        <input id="adaugaTitlu" class="form-control" maxlength="200" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Gen</label>
+                        <select id="adaugaGen" class="form-select">
+                            <option value="">Alege gen</option>
+                            <option>Acțiune</option>
+                            <option>Comedie</option>
+                            <option>SF</option>
+                            <option>Horror</option>
+                            <option>Drama</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">An</label>
+                        <input id="adaugaAn" type="number" min="1888" max="2100" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Descriere</label>
+                        <textarea id="adaugaDescriere" class="form-control"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Anulează</button>
+                    <button class="btn btn-accent" type="submit">Salvează</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEditeaza" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content card-dark">
+            <form onsubmit="salveazaEditare(event)">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editează film</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input id="editId" type="hidden">
+                    <div class="mb-2">
+                        <label class="form-label">Titlu</label>
+                        <input id="editTitlu" class="form-control" maxlength="200">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Gen</label>
+                        <select id="editGen" class="form-select">
+                            <option value="">Alege gen</option>
+                            <option>Acțiune</option>
+                            <option>Comedie</option>
+                            <option>SF</option>
+                            <option>Horror</option>
+                            <option>Drama</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">An</label>
+                        <input id="editAn" type="number" min="1888" max="2100" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Descriere</label>
+                        <textarea id="editDescriere" class="form-control"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Rating (1-10)</label>
+                        <div id="editRatingStele" class="d-flex flex-wrap"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Anulează</button>
+                    <button class="btn btn-accent" type="submit">Actualizează</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const API = "";
+    const cheieToken = "token";
+    let filmeCurente = [];
+    let ratingSelectat = null;
+
+    function escapeHtml(text) {
+        const continut = String(text ?? "");
+        return continut
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll("\"", "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function getToken() {
+        return localStorage.getItem(cheieToken);
+    }
+
+    function antetAuth() {
+        return { Authorization: `Bearer ${getToken()}` };
+    }
+
+    function emojiGen(gen) {
+        const mapa = {
+            "Acțiune": "💥",
+            "Comedie": "😂",
+            "SF": "🚀",
+            "Horror": "👻",
+            "Drama": "🎭"
+        };
+        return mapa[gen] || "🎬";
+    }
+
+    function descriereScurta(text) {
+        const s = String(text ?? "");
+        if (s.length <= 80) {
+            return s;
+        }
+        return `${s.slice(0, 80)}...`;
+    }
+
+    function steleDinRating(rating) {
+        if (!rating) {
+            return "Fără rating";
+        }
+        const totalStele = 10;
+        const stelePline = "★".repeat(rating);
+        const steleGoale = "☆".repeat(totalStele - rating);
+        return `${stelePline}${steleGoale} (${rating}/10)`;
+    }
+
+    function actualizeazaContor() {
+        const total = filmeCurente.length;
+        const vazute = filmeCurente.filter(f => f.vazut).length;
+        document.getElementById("contorFilme").textContent = `${total} filme · ${vazute} văzute`;
+    }
+
+    async function actualizeazaUI() {
+        const token = getToken();
+        const sectiuneAuth = document.getElementById("sectiuneAuth");
+        const sectiuneApp = document.getElementById("sectiuneApp");
+        const btnDeconectare = document.getElementById("btnDeconectare");
+
+        if (!token) {
+            sectiuneAuth.classList.remove("d-none");
+            sectiuneApp.classList.add("d-none");
+            btnDeconectare.classList.add("d-none");
+            document.getElementById("emailUtilizator").textContent = "";
+            document.getElementById("contorFilme").textContent = "";
+            return;
+        }
+
+        const raspuns = await fetch(`${API}/utilizatori/eu`, { headers: antetAuth() });
+        if (!raspuns.ok) {
+            deconecteaza();
+            return;
+        }
+
+        const utilizator = await raspuns.json();
+        sectiuneAuth.classList.add("d-none");
+        sectiuneApp.classList.remove("d-none");
+        btnDeconectare.classList.remove("d-none");
+        document.getElementById("emailUtilizator").textContent = escapeHtml(utilizator.email);
+        await incarcaFilme();
+    }
+
+    async function autentifica(event) {
+        event.preventDefault();
+        const email = document.getElementById("loginEmail").value.trim();
+        const parola = document.getElementById("loginParola").value;
+
+        const body = new URLSearchParams();
+        body.append("username", email);
+        body.append("password", parola);
+
+        const raspuns = await fetch(`${API}/autentificare`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: body.toString()
+        });
+
+        if (!raspuns.ok) {
+            alert("Autentificare eșuată. Verifică email-ul și parola.");
+            return;
+        }
+
+        const data = await raspuns.json();
+        localStorage.setItem(cheieToken, data.access_token);
+        await actualizeazaUI();
+    }
+
+    async function inregistreaza(event) {
+        event.preventDefault();
+        const email = document.getElementById("regEmail").value.trim();
+        const parola = document.getElementById("regParola").value;
+
+        const raspuns = await fetch(`${API}/inregistrare`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, parola })
+        });
+
+        if (!raspuns.ok) {
+            const eroare = await raspuns.json();
+            alert(eroare.detail || "Înregistrarea a eșuat.");
+            return;
+        }
+
+        alert("Cont creat cu succes! Acum te poți autentifica.");
+        const tabLogin = new bootstrap.Tab(document.querySelector('[data-bs-target="#tabLogin"]'));
+        tabLogin.show();
+    }
+
+    async function incarcaFilme() {
+        const doarNevazute = document.getElementById("filtruNevazute").checked;
+        const gen = document.getElementById("filtruGen").value;
+        const params = new URLSearchParams();
+        if (doarNevazute) {
+            params.append("doar_nevazute", "true");
+        }
+        if (gen) {
+            params.append("gen", gen);
+        }
+
+        const raspuns = await fetch(`${API}/filme?${params.toString()}`, { headers: antetAuth() });
+        if (!raspuns.ok) {
+            if (raspuns.status === 401) {
+                deconecteaza();
+                return;
+            }
+            alert("Nu am putut încărca filmele.");
+            return;
+        }
+
+        filmeCurente = await raspuns.json();
+        randeazaFilme(filmeCurente);
+        actualizeazaContor();
+    }
+
+    function randeazaFilme(filme) {
+        const container = document.getElementById("listaFilme");
+        if (!filme.length) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="card card-dark p-4 text-center text-secondary">
+                        Nu ai filme în listă. Adaugă primul film.
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filme.map(film => `
+            <div class="col-sm-6 col-md-4 col-lg-3">
+                <div class="card card-dark h-100">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">${emojiGen(film.gen)} ${escapeHtml(film.titlu)}</h5>
+                        </div>
+                        <div class="mb-2 d-flex flex-wrap gap-1">
+                            ${film.gen ? `<span class="badge bg-primary">${escapeHtml(film.gen)}</span>` : ""}
+                            ${film.an ? `<span class="badge bg-secondary">${escapeHtml(film.an)}</span>` : ""}
+                            <span class="badge ${film.vazut ? "badge-vazut" : "badge-nevazut"}">${film.vazut ? "✓ Văzut" : "⏳ Nevăzut"}</span>
+                        </div>
+                        <p class="small text-secondary descriere-trunchiata">${escapeHtml(descriereScurta(film.descriere || "Fără descriere"))}</p>
+                        <p class="small text-warning mb-3">${escapeHtml(steleDinRating(film.rating))}</p>
+                        <div class="mt-auto d-flex gap-1 flex-wrap">
+                            ${film.vazut ? "" : `<button class="btn btn-outline-success btn-sm" onclick="marcheazaVazut(${film.id})"><i class="bi bi-eye"></i> Marchează văzut</button>`}
+                            <button class="btn btn-outline-info btn-sm" onclick="deschideEditare(${film.id})"><i class="bi bi-pencil"></i> Editează</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="stergeFilm(${film.id}, '${escapeHtml(film.titlu)}')"><i class="bi bi-trash"></i> Șterge</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    async function adaugaFilm(event) {
+        event.preventDefault();
+        const payload = {
+            titlu: document.getElementById("adaugaTitlu").value.trim(),
+            gen: document.getElementById("adaugaGen").value || null,
+            an: document.getElementById("adaugaAn").value ? Number(document.getElementById("adaugaAn").value) : null,
+            descriere: document.getElementById("adaugaDescriere").value.trim() || null
+        };
+
+        const raspuns = await fetch(`${API}/filme`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...antetAuth() },
+            body: JSON.stringify(payload)
+        });
+        if (!raspuns.ok) {
+            alert("Nu am putut adăuga filmul.");
+            return;
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById("modalAdauga")).hide();
+        event.target.reset();
+        await incarcaFilme();
+    }
+
+    function construiesteRatingInteractiv(valoareInitiala) {
+        const container = document.getElementById("editRatingStele");
+        container.innerHTML = "";
+        ratingSelectat = valoareInitiala || null;
+
+        for (let i = 1; i <= 10; i += 1) {
+            const stea = document.createElement("i");
+            stea.className = `bi bi-star-fill rating-star ${ratingSelectat && i <= ratingSelectat ? "active" : ""}`;
+            stea.dataset.value = String(i);
+            stea.addEventListener("mouseenter", () => afiseazaRatingTemporar(i));
+            stea.addEventListener("click", () => {
+                ratingSelectat = i;
+                coloreazaRating(ratingSelectat);
+            });
+            container.appendChild(stea);
+        }
+        container.addEventListener("mouseleave", () => coloreazaRating(ratingSelectat || 0));
+        coloreazaRating(ratingSelectat || 0);
+    }
+
+    function afiseazaRatingTemporar(valoare) {
+        coloreazaRating(valoare);
+    }
+
+    function coloreazaRating(valoare) {
+        const stele = Array.from(document.querySelectorAll("#editRatingStele .rating-star"));
+        stele.forEach((stea, index) => {
+            if (index < valoare) {
+                stea.classList.add("active");
+            } else {
+                stea.classList.remove("active");
+            }
+        });
+    }
+
+    function deschideEditare(id) {
+        const film = filmeCurente.find(f => f.id === id);
+        if (!film) {
+            return;
+        }
+
+        document.getElementById("editId").value = String(film.id);
+        document.getElementById("editTitlu").value = film.titlu || "";
+        document.getElementById("editGen").value = film.gen || "";
+        document.getElementById("editAn").value = film.an || "";
+        document.getElementById("editDescriere").value = film.descriere || "";
+        construiesteRatingInteractiv(film.rating || null);
+
+        const modal = new bootstrap.Modal(document.getElementById("modalEditeaza"));
+        modal.show();
+    }
+
+    async function salveazaEditare(event) {
+        event.preventDefault();
+        const id = Number(document.getElementById("editId").value);
+
+        const payload = {
+            titlu: document.getElementById("editTitlu").value.trim() || null,
+            gen: document.getElementById("editGen").value || null,
+            an: document.getElementById("editAn").value ? Number(document.getElementById("editAn").value) : null,
+            descriere: document.getElementById("editDescriere").value.trim() || null,
+            rating: ratingSelectat
+        };
+
+        const raspuns = await fetch(`${API}/filme/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json", ...antetAuth() },
+            body: JSON.stringify(payload)
+        });
+        if (!raspuns.ok) {
+            alert("Nu am putut salva editarea.");
+            return;
+        }
+
+        bootstrap.Modal.getInstance(document.getElementById("modalEditeaza")).hide();
+        await incarcaFilme();
+    }
+
+    async function marcheazaVazut(id) {
+        const raspuns = await fetch(`${API}/filme/${id}/vazut`, {
+            method: "PATCH",
+            headers: antetAuth()
+        });
+        if (!raspuns.ok) {
+            alert("Nu am putut marca filmul ca văzut.");
+            return;
+        }
+        await incarcaFilme();
+    }
+
+    async function stergeFilm(id, titlu) {
+        const confirmat = confirm(`Sigur vrei să ștergi filmul "${titlu}"?`);
+        if (!confirmat) {
+            return;
+        }
+
+        const raspuns = await fetch(`${API}/filme/${id}`, {
+            method: "DELETE",
+            headers: antetAuth()
+        });
+        if (!raspuns.ok) {
+            alert("Nu am putut șterge filmul.");
+            return;
+        }
+        await incarcaFilme();
+    }
+
+    function deconecteaza() {
+        localStorage.removeItem(cheieToken);
+        actualizeazaUI();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        actualizeazaUI();
+    });
+</script>
+</body>
+</html>
