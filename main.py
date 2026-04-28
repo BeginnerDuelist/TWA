@@ -19,6 +19,7 @@ SECRET_KEY: str = os.getenv("SECRET_KEY", "schimba-ma")
 ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
 EXPIRARE_TOKEN_MINUTE: int = int(os.getenv("EXPIRARE_TOKEN_MINUTE", "60"))
 DATABASE_PATH: str = os.getenv("DATABASE_PATH", "watchlist.db")
+RESET_DATABASE_ON_START: bool = os.getenv("RESET_DATABASE_ON_START", "false").lower() == "true"
 
 pwd_context: CryptContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme: OAuth2PasswordBearer = OAuth2PasswordBearer(tokenUrl="autentificare")
@@ -56,6 +57,7 @@ def get_db() -> Generator[sqlite3.Connection, None, None]:
 
 def initializeaza_db() -> None:
     with sqlite3.connect(DATABASE_PATH) as db:
+        db.row_factory = sqlite3.Row
         db.execute("PRAGMA foreign_keys = ON")
         db.execute(
             """
@@ -82,7 +84,124 @@ def initializeaza_db() -> None:
             );
             """
         )
+        _populeaza_date_demo(db)
         db.commit()
+
+
+def _populeaza_date_demo(db: sqlite3.Connection) -> None:
+    utilizatori_demo: list[tuple[str, str]] = [
+        ("ana@example.com", "parola123"),
+        ("mihai@example.com", "parola123"),
+        ("ioana@example.com", "parola123"),
+    ]
+    for email, parola in utilizatori_demo:
+        existent: Optional[sqlite3.Row] = db.execute(
+            "SELECT id FROM utilizatori WHERE email = ?",
+            (email,),
+        ).fetchone()
+        if existent is None:
+            db.execute(
+                "INSERT INTO utilizatori (email, parola_hash) VALUES (?, ?)",
+                (email, _hash_parola(parola)),
+            )
+
+    utilizatori: list[sqlite3.Row] = db.execute(
+        "SELECT id, email FROM utilizatori ORDER BY id ASC"
+    ).fetchall()
+    utilizator_map: dict[str, int] = {row["email"]: row["id"] for row in utilizatori}
+
+    filme_demo: list[tuple[str, str, int, str, int, Optional[int], str, str]] = [
+        (
+            "Interstellar",
+            "SF",
+            2014,
+            "O călătorie în spațiu și timp pentru salvarea omenirii.",
+            1,
+            10,
+            "2024-01-04T10:00:00",
+            "ana@example.com",
+        ),
+        (
+            "Inception",
+            "SF",
+            2010,
+            "Un hoț intră în vise pentru a planta o idee imposibilă.",
+            1,
+            9,
+            "2024-01-10T09:20:00",
+            "ana@example.com",
+        ),
+        (
+            "The Dark Knight",
+            "Acțiune",
+            2008,
+            "Batman îl înfruntă pe Joker într-un Gotham haotic.",
+            0,
+            None,
+            "2024-02-01T20:45:00",
+            "ana@example.com",
+        ),
+        (
+            "The Hangover",
+            "Comedie",
+            2009,
+            "O noapte nebună în Vegas, urmată de consecințe memorabile.",
+            1,
+            8,
+            "2024-01-15T18:15:00",
+            "mihai@example.com",
+        ),
+        (
+            "The Conjuring",
+            "Horror",
+            2013,
+            "Anchetatori paranormali investighează o casă bântuită.",
+            0,
+            None,
+            "2024-03-02T21:30:00",
+            "mihai@example.com",
+        ),
+        (
+            "La La Land",
+            "Drama",
+            2016,
+            "Poveste de dragoste între visuri, muzică și compromisuri.",
+            1,
+            9,
+            "2024-02-14T19:00:00",
+            "ioana@example.com",
+        ),
+        (
+            "Dune",
+            "SF",
+            2021,
+            "Luptă pentru putere pe planeta deșert Arrakis.",
+            0,
+            None,
+            "2024-03-21T12:00:00",
+            "ioana@example.com",
+        ),
+    ]
+
+    for titlu, gen, an, descriere, vazut, rating, data_adaugarii, email in filme_demo:
+        utilizator_id: Optional[int] = utilizator_map.get(email)
+        if utilizator_id is None:
+            continue
+
+        film_existent: Optional[sqlite3.Row] = db.execute(
+            "SELECT id FROM filme WHERE titlu = ? AND utilizator_id = ?",
+            (titlu, utilizator_id),
+        ).fetchone()
+        if film_existent is not None:
+            continue
+
+        db.execute(
+            """
+            INSERT INTO filme (titlu, gen, an, descriere, vazut, rating, data_adaugarii, utilizator_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (titlu, gen, an, descriere, vazut, rating, data_adaugarii, utilizator_id),
+        )
 
 
 def _hash_parola(parola: str) -> str:
@@ -140,8 +259,17 @@ def get_utilizator_curent(
     return {"id": utilizator["id"], "email": utilizator["email"]}
 
 
+def _reseteaza_baza_daca_este_cerut() -> None:
+    if not RESET_DATABASE_ON_START:
+        return
+
+    if os.path.exists(DATABASE_PATH):
+        os.remove(DATABASE_PATH)
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    _reseteaza_baza_daca_este_cerut()
     initializeaza_db()
     yield
 

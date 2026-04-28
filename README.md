@@ -16,6 +16,9 @@ Aplicație web full-stack pentru gestionarea unei liste personale de filme.
 - Filtrare filme după:
   - doar nevăzute
   - gen
+- Căutare locală instant în listă (titlu + descriere)
+- Dashboard UI cu statistici (total, văzute, progres)
+- Date demo populate automat la prima pornire (utilizatori + filme)
 - Izolare date per utilizator (`utilizator_id`)
 
 ## Structură proiect
@@ -55,7 +58,16 @@ SECRET_KEY=schimba-cu-o-cheie-random-generata-cu-python-secrets
 ALGORITHM=HS256
 EXPIRARE_TOKEN_MINUTE=60
 DATABASE_PATH=watchlist.db
+RESET_DATABASE_ON_START=false
 ```
+
+Pentru o bază locală curată la următorul startup:
+
+```env
+RESET_DATABASE_ON_START=true
+```
+
+După primul restart, revino la `false` (sau șterge cheia), ca să nu reseteze DB de fiecare dată.
 
 ## Pornire aplicație
 
@@ -70,6 +82,21 @@ Acces:
 - App: <http://127.0.0.1:8010>
 - Swagger UI: <http://127.0.0.1:8010/docs>
 - Health: <http://127.0.0.1:8010/healthz>
+
+### Date demo populate automat
+
+La pornire, aplicația inserează automat datele demo lipsă în toate tabelele existente:
+
+- utilizatori demo (`ana@example.com`, `mihai@example.com`, `ioana@example.com`)
+- filme demo distribuite pe utilizatori
+
+Parola pentru conturile demo este: `parola123`.
+
+Pentru test complet „de la zero”:
+
+1. Setezi `RESET_DATABASE_ON_START=true` în `.env`
+2. Repornești aplicația o dată
+3. Revii la `RESET_DATABASE_ON_START=false`
 
 ## API Endpoint-uri
 
@@ -130,6 +157,19 @@ Pași:
 1. Push proiectul într-un repo Git
 2. Creezi un serviciu nou în Render din repo
 3. Render detectează `render.yaml` și aplică setările automat
+
+### Notă importantă despre serviciul free Render
+
+Pe planul free, Render poate opri serviciul după aproximativ 15 minute de inactivitate.  
+Pentru a reduce șansele de oprire, este folosit un serviciu web gratuit care face ping periodic la aplicație: [UptimeRobot](https://uptimerobot.com/).
+
+Astfel, aplicația rămâne mai des activă, iar riscul de a pierde datele după restarturi frecvente este mai mic.
+
+## Schimbări recente
+
+- Seed automat pentru baza de date la startup (date demo în `utilizatori` și `filme` dacă tabelele sunt goale)
+- UI modernizat cu Bootstrap (hero section, carduri statistice, carduri interactive pentru filme, filtru de căutare)
+- `README` actualizat cu instrucțiuni pentru date demo și explicație despre Render + UptimeRobot
 
 ## Troubleshooting
 
