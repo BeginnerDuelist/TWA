@@ -168,6 +168,23 @@ Pași:
 2. Creezi un serviciu nou în Render din repo
 3. Render detectează `render.yaml` și aplică setările automat
 
+## Screenshots
+
+### Login
+![Login](assets/login.png)
+
+### Pagina Filme
+![Pagina Filme](assets/filme.png)
+
+### Pagina Statistici
+![Pagina Statistici](assets/statistici.png)
+
+### Pagina Profil
+![Pagina Profil](assets/profil.png)
+
+### Pagina Editare Film
+![Pagina Editare Film](assets/editare-film.png)
+
 ### Notă importantă despre serviciul free Render
 
 Pe planul free, Render poate opri serviciul după aproximativ 15 minute de inactivitate.  
