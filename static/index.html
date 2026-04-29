@@ -127,6 +127,12 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top border-bottom border-secondary-subtle">
     <div class="container">
         <a class="navbar-brand" href="#">🎬 Movie Watchlist</a>
+        <div id="navPagini" class="d-none d-flex align-items-center gap-2 ms-4 flex-wrap">
+            <button id="navFilme" class="btn btn-sm btn-accent" onclick="schimbaEcran('filme')">Filme</button>
+            <button id="navStatistici" class="btn btn-sm btn-outline-light" onclick="schimbaEcran('statistici')">Statistici</button>
+            <button id="navProfil" class="btn btn-sm btn-outline-light" onclick="schimbaEcran('profil')">Profil</button>
+            <button id="navEditare" class="btn btn-sm btn-outline-light d-none" onclick="schimbaEcran('editare')">Editare film</button>
+        </div>
         <div class="ms-auto d-flex align-items-center gap-3">
             <span id="emailUtilizator" class="small text-light"></span>
             <span id="contorFilme" class="small text-secondary"></span>
@@ -214,63 +220,173 @@
             </div>
         </div>
 
-        <div class="row g-3 mb-4">
-            <div class="col-12 col-md-4">
-                <div class="card card-dark stat-card h-100">
-                    <div class="card-body">
-                        <p class="text-secondary small mb-1">Total filme</p>
-                        <div id="statTotal" class="display-6 fw-semibold">0</div>
+        <div id="ecranFilme">
+            <div class="card card-dark mb-4">
+                <div class="card-body d-flex flex-column gap-3">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-12 col-md-auto">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="filtruNevazute" onchange="incarcaFilme()">
+                                <label class="form-check-label" for="filtruNevazute">Doar nevăzute</label>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-auto">
+                            <select id="filtruGen" class="form-select form-select-sm input-dark" onchange="incarcaFilme()">
+                                <option value="">Toate genurile</option>
+                                <option>Acțiune</option>
+                                <option>Comedie</option>
+                                <option>SF</option>
+                                <option>Horror</option>
+                                <option>Drama</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-dark text-light border-secondary"><i class="bi bi-search"></i></span>
+                                <input id="filtruText" class="form-control input-dark" placeholder="Caută după titlu sau descriere" oninput="filtreazaLocal()">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-4">
-                <div class="card card-dark stat-card h-100">
-                    <div class="card-body">
-                        <p class="text-secondary small mb-1">Filme văzute</p>
-                        <div id="statVazute" class="display-6 fw-semibold text-success">0</div>
+
+            <div id="listaFilme" class="row g-3"></div>
+        </div>
+
+        <div id="ecranStatistici" class="d-none">
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="card card-dark stat-card h-100">
+                        <div class="card-body">
+                            <p class="text-secondary small mb-1">Total filme</p>
+                            <div id="statTotal" class="display-6 fw-semibold">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="card card-dark stat-card h-100">
+                        <div class="card-body">
+                            <p class="text-secondary small mb-1">Filme văzute</p>
+                            <div id="statVazute" class="display-6 fw-semibold text-success">0</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="card card-dark stat-card h-100">
+                        <div class="card-body">
+                            <p class="text-secondary small mb-1">Rată completare</p>
+                            <div id="statProgres" class="display-6 fw-semibold text-info">0%</div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-md-4">
-                <div class="card card-dark stat-card h-100">
-                    <div class="card-body">
-                        <p class="text-secondary small mb-1">Rată completare</p>
-                        <div id="statProgres" class="display-6 fw-semibold text-info">0%</div>
+            <div class="card card-dark">
+                <div class="card-body">
+                    <h5 class="mb-3">Distribuție pe status</h5>
+                    <div class="progress bg-dark-subtle mb-2" role="progressbar" aria-label="Progres filme văzute">
+                        <div id="barVazute" class="progress-bar bg-success" style="width: 0%">0% văzute</div>
                     </div>
+                    <p id="textNevazute" class="text-secondary mb-0 small">Nevăzute: 0</p>
                 </div>
             </div>
         </div>
 
-        <div class="card card-dark mb-4">
-            <div class="card-body d-flex flex-column gap-3">
-                <div class="row g-2 align-items-center">
-                    <div class="col-12 col-md-auto">
-                        <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="filtruNevazute" onchange="incarcaFilme()">
-                    <label class="form-check-label" for="filtruNevazute">Doar nevăzute</label>
+        <div id="ecranProfil" class="d-none">
+            <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                    <div class="card card-dark h-100">
+                        <div class="card-body">
+                            <h5 class="mb-3"><i class="bi bi-person-circle me-2"></i>Date utilizator</h5>
+                            <p class="mb-2"><span class="text-secondary">Email:</span> <strong id="profilEmail">-</strong></p>
+                            <p class="mb-0"><span class="text-secondary">ID utilizator:</span> <strong id="profilId">-</strong></p>
+                        </div>
+                    </div>
                 </div>
+                <div class="col-12 col-lg-6">
+                    <div class="card card-dark h-100">
+                        <div class="card-body">
+                            <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Rezumat watchlist</h5>
+                            <p class="mb-2">Total filme: <strong id="profilTotal">0</strong></p>
+                            <p class="mb-2">Filme văzute: <strong id="profilVazute">0</strong></p>
+                            <p class="mb-0">Filme nevăzute: <strong id="profilNevazute">0</strong></p>
+                        </div>
                     </div>
-                    <div class="col-12 col-md-auto">
-                <select id="filtruGen" class="form-select form-select-sm input-dark" onchange="incarcaFilme()">
-                    <option value="">Toate genurile</option>
-                    <option>Acțiune</option>
-                    <option>Comedie</option>
-                    <option>SF</option>
-                    <option>Horror</option>
-                    <option>Drama</option>
-                </select>
-                    </div>
-                    <div class="col-12 col-md">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-dark text-light border-secondary"><i class="bi bi-search"></i></span>
-                            <input id="filtruText" class="form-control input-dark" placeholder="Caută după titlu sau descriere" oninput="filtreazaLocal()">
+                </div>
+                <div class="col-12">
+                    <div class="card card-dark">
+                        <div class="card-body">
+                            <h5 class="mb-3"><i class="bi bi-shield-lock me-2"></i>Schimbă parola</h5>
+                            <form onsubmit="schimbaParola(event)">
+                                <div class="row g-2">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Parola curentă</label>
+                                        <input id="parolaCurenta" type="password" class="form-control input-dark" minlength="6" required>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Parola nouă</label>
+                                        <input id="parolaNoua" type="password" class="form-control input-dark" minlength="6" required>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label">Confirmă parola nouă</label>
+                                        <input id="parolaNouaConfirmare" type="password" class="form-control input-dark" minlength="6" required>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-accent" type="submit">Actualizează parola</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="listaFilme" class="row g-3"></div>
+        <div id="ecranEditare" class="d-none">
+            <div class="card card-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Editează film</h5>
+                        <button class="btn btn-outline-light btn-sm" onclick="anuleazaEditare()">
+                            <i class="bi bi-arrow-left me-1"></i> Înapoi la filme
+                        </button>
+                    </div>
+                    <form id="formularEditarePagina" onsubmit="salveazaEditare(event)">
+                        <input id="editId" type="hidden">
+                        <div class="mb-2">
+                            <label class="form-label">Titlu</label>
+                            <input id="editTitlu" class="form-control input-dark" maxlength="200">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Gen</label>
+                            <select id="editGen" class="form-select input-dark">
+                                <option value="">Alege gen</option>
+                                <option>Acțiune</option>
+                                <option>Comedie</option>
+                                <option>SF</option>
+                                <option>Horror</option>
+                                <option>Drama</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">An</label>
+                            <input id="editAn" type="number" min="1888" max="2100" class="form-control input-dark">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Descriere</label>
+                            <textarea id="editDescriere" class="form-control input-dark"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rating (1-10)</label>
+                            <div id="editRatingStele" class="d-flex flex-wrap"></div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-accent" type="submit">Salvează modificările</button>
+                            <button class="btn btn-secondary" type="button" onclick="anuleazaEditare()">Anulează</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </section>
 </main>
 
@@ -316,53 +432,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalEditeaza" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content card-dark">
-            <form onsubmit="salveazaEditare(event)">
-                <div class="modal-header">
-                    <h5 class="modal-title">Editează film</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input id="editId" type="hidden">
-                    <div class="mb-2">
-                        <label class="form-label">Titlu</label>
-                        <input id="editTitlu" class="form-control" maxlength="200">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Gen</label>
-                        <select id="editGen" class="form-select">
-                            <option value="">Alege gen</option>
-                            <option>Acțiune</option>
-                            <option>Comedie</option>
-                            <option>SF</option>
-                            <option>Horror</option>
-                            <option>Drama</option>
-                        </select>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">An</label>
-                        <input id="editAn" type="number" min="1888" max="2100" class="form-control">
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Descriere</label>
-                        <textarea id="editDescriere" class="form-control"></textarea>
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Rating (1-10)</label>
-                        <div id="editRatingStele" class="d-flex flex-wrap"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Anulează</button>
-                    <button class="btn btn-accent" type="submit">Actualizează</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const API = "";
@@ -370,6 +439,7 @@
     let filmeCurente = [];
     let filmeFiltrate = [];
     let ratingSelectat = null;
+    let utilizatorCurent = null;
 
     function escapeHtml(text) {
         const continut = String(text ?? "");
@@ -421,11 +491,60 @@
     function actualizeazaContor() {
         const total = filmeCurente.length;
         const vazute = filmeCurente.filter(f => f.vazut).length;
+        const nevazute = total - vazute;
         const procent = total ? Math.round((vazute / total) * 100) : 0;
         document.getElementById("contorFilme").textContent = `${total} filme · ${vazute} văzute`;
         document.getElementById("statTotal").textContent = String(total);
         document.getElementById("statVazute").textContent = String(vazute);
         document.getElementById("statProgres").textContent = `${procent}%`;
+        document.getElementById("barVazute").style.width = `${procent}%`;
+        document.getElementById("barVazute").textContent = `${procent}% văzute`;
+        document.getElementById("textNevazute").textContent = `Nevăzute: ${nevazute}`;
+        document.getElementById("profilTotal").textContent = String(total);
+        document.getElementById("profilVazute").textContent = String(vazute);
+        document.getElementById("profilNevazute").textContent = String(nevazute);
+    }
+
+    function schimbaEcran(ecran) {
+        const ecranFilme = document.getElementById("ecranFilme");
+        const ecranStatistici = document.getElementById("ecranStatistici");
+        const ecranProfil = document.getElementById("ecranProfil");
+        const ecranEditare = document.getElementById("ecranEditare");
+        const navFilme = document.getElementById("navFilme");
+        const navStatistici = document.getElementById("navStatistici");
+        const navProfil = document.getElementById("navProfil");
+        const navEditare = document.getElementById("navEditare");
+
+        ecranFilme.classList.add("d-none");
+        ecranStatistici.classList.add("d-none");
+        ecranProfil.classList.add("d-none");
+        ecranEditare.classList.add("d-none");
+
+        navFilme.className = "btn btn-sm btn-outline-light";
+        navStatistici.className = "btn btn-sm btn-outline-light";
+        navProfil.className = "btn btn-sm btn-outline-light";
+        navEditare.className = "btn btn-sm btn-outline-light d-none";
+
+        if (ecran === "statistici") {
+            ecranStatistici.classList.remove("d-none");
+            navStatistici.className = "btn btn-sm btn-accent";
+            return;
+        }
+
+        if (ecran === "profil") {
+            ecranProfil.classList.remove("d-none");
+            navProfil.className = "btn btn-sm btn-accent";
+            return;
+        }
+
+        if (ecran === "editare") {
+            ecranEditare.classList.remove("d-none");
+            navEditare.className = "btn btn-sm btn-accent";
+            return;
+        }
+
+        ecranFilme.classList.remove("d-none");
+        navFilme.className = "btn btn-sm btn-accent";
     }
 
     async function actualizeazaUI() {
@@ -433,11 +552,13 @@
         const sectiuneAuth = document.getElementById("sectiuneAuth");
         const sectiuneApp = document.getElementById("sectiuneApp");
         const btnDeconectare = document.getElementById("btnDeconectare");
+        const navPagini = document.getElementById("navPagini");
 
         if (!token) {
             sectiuneAuth.classList.remove("d-none");
             sectiuneApp.classList.add("d-none");
             btnDeconectare.classList.add("d-none");
+            navPagini.classList.add("d-none");
             document.getElementById("emailUtilizator").textContent = "";
             document.getElementById("contorFilme").textContent = "";
             return;
@@ -450,11 +571,16 @@
         }
 
         const utilizator = await raspuns.json();
+        utilizatorCurent = utilizator;
         sectiuneAuth.classList.add("d-none");
         sectiuneApp.classList.remove("d-none");
         btnDeconectare.classList.remove("d-none");
+        navPagini.classList.remove("d-none");
         document.getElementById("emailUtilizator").textContent = escapeHtml(utilizator.email);
+        document.getElementById("profilEmail").textContent = utilizator.email;
+        document.getElementById("profilId").textContent = String(utilizator.id);
         await incarcaFilme();
+        schimbaEcran("filme");
     }
 
     async function autentifica(event) {
@@ -653,9 +779,7 @@
         document.getElementById("editAn").value = film.an || "";
         document.getElementById("editDescriere").value = film.descriere || "";
         construiesteRatingInteractiv(film.rating || null);
-
-        const modal = new bootstrap.Modal(document.getElementById("modalEditeaza"));
-        modal.show();
+        schimbaEcran("editare");
     }
 
     async function salveazaEditare(event) {
@@ -680,8 +804,12 @@
             return;
         }
 
-        bootstrap.Modal.getInstance(document.getElementById("modalEditeaza")).hide();
         await incarcaFilme();
+        schimbaEcran("filme");
+    }
+
+    function anuleazaEditare() {
+        schimbaEcran("filme");
     }
 
     async function marcheazaVazut(id) {
@@ -713,8 +841,39 @@
         await incarcaFilme();
     }
 
+    async function schimbaParola(event) {
+        event.preventDefault();
+        const parolaCurenta = document.getElementById("parolaCurenta").value;
+        const parolaNoua = document.getElementById("parolaNoua").value;
+        const parolaNouaConfirmare = document.getElementById("parolaNouaConfirmare").value;
+
+        if (parolaNoua !== parolaNouaConfirmare) {
+            alert("Confirmarea parolei noi nu corespunde.");
+            return;
+        }
+
+        const raspuns = await fetch(`${API}/utilizatori/schimba-parola`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", ...antetAuth() },
+            body: JSON.stringify({
+                parola_curenta: parolaCurenta,
+                parola_noua: parolaNoua
+            })
+        });
+
+        if (!raspuns.ok) {
+            const eroare = await raspuns.json();
+            alert(eroare.detail || "Nu am putut schimba parola.");
+            return;
+        }
+
+        alert("Parola a fost schimbată cu succes.");
+        event.target.reset();
+    }
+
     function deconecteaza() {
         localStorage.removeItem(cheieToken);
+        utilizatorCurent = null;
         actualizeazaUI();
     }
 

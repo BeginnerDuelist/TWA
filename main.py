@@ -45,6 +45,11 @@ class FilmActualizare(BaseModel):
     rating: Optional[int] = Field(default=None, ge=1, le=10)
 
 
+class SchimbareParolaPayload(BaseModel):
+    parola_curenta: str = Field(min_length=6)
+    parola_noua: str = Field(min_length=6)
+
+
 def get_db() -> Generator[sqlite3.Connection, None, None]:
     db: sqlite3.Connection = sqlite3.connect(DATABASE_PATH)
     db.row_factory = sqlite3.Row
@@ -328,6 +333,34 @@ def autentificare(
 @app.get("/utilizatori/eu")
 def utilizator_eu(utilizator_curent: dict = Depends(get_utilizator_curent)):
     return {"id": utilizator_curent["id"], "email": utilizator_curent["email"]}
+
+
+@app.post("/utilizatori/schimba-parola")
+def schimba_parola_utilizator(
+    payload: SchimbareParolaPayload,
+    utilizator_curent: dict = Depends(get_utilizator_curent),
+    db: sqlite3.Connection = Depends(get_db),
+):
+    utilizator: Optional[sqlite3.Row] = db.execute(
+        "SELECT id, parola_hash FROM utilizatori WHERE id = ?",
+        (utilizator_curent["id"],),
+    ).fetchone()
+    if utilizator is None:
+        raise HTTPException(status_code=404, detail="Utilizatorul nu a fost găsit.")
+
+    if not _verifica_parola(payload.parola_curenta, utilizator["parola_hash"]):
+        raise HTTPException(status_code=400, detail="Parola curentă este incorectă.")
+
+    if payload.parola_curenta == payload.parola_noua:
+        raise HTTPException(status_code=400, detail="Parola nouă trebuie să fie diferită.")
+
+    parola_hash_noua: str = _hash_parola(payload.parola_noua)
+    db.execute(
+        "UPDATE utilizatori SET parola_hash = ? WHERE id = ?",
+        (parola_hash_noua, utilizator_curent["id"]),
+    )
+    db.commit()
+    return {"mesaj": "Parola a fost actualizată cu succes."}
 
 
 @app.get("/filme")

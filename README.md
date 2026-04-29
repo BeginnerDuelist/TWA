@@ -1,5 +1,7 @@
 # Movie Watchlist
 
+Proiect realizat de studentul **Buza Cătălin**.
+
 Aplicație web full-stack pentru gestionarea unei liste personale de filme.
 
 - **Backend:** FastAPI + SQLite (`sqlite3` din stdlib) + JWT
@@ -11,6 +13,7 @@ Aplicație web full-stack pentru gestionarea unei liste personale de filme.
 - Înregistrare cont utilizator
 - Autentificare JWT (OAuth2 Password flow)
 - Profil utilizator curent (`/utilizatori/eu`)
+- Schimbare parolă din profil (`/utilizatori/schimba-parola`)
 - CRUD complet pentru filme
 - Marcarea unui film ca văzut
 - Filtrare filme după:
@@ -18,6 +21,12 @@ Aplicație web full-stack pentru gestionarea unei liste personale de filme.
   - gen
 - Căutare locală instant în listă (titlu + descriere)
 - Dashboard UI cu statistici (total, văzute, progres)
+- Navigare în aplicație cu 3 ecrane distincte:
+  - Ecran 1: Filme (listă + filtre + acțiuni CRUD)
+  - Ecran 2: Statistici (KPI + progres vizual)
+  - Ecran 3: Profil (date utilizator + rezumat watchlist)
+- Navigare principală în header (navbar) între paginile aplicației
+- Editarea filmului se face pe pagină separată (nu în modal)
 - Date demo populate automat la prima pornire (utilizatori + filme)
 - Izolare date per utilizator (`utilizator_id`)
 
@@ -109,6 +118,7 @@ Pentru test complet „de la zero”:
 ### Protejate (Bearer Token)
 
 - `GET /utilizatori/eu`
+- `POST /utilizatori/schimba-parola`
 - `GET /filme`
 - `GET /filme/{film_id}`
 - `POST /filme`
@@ -169,6 +179,7 @@ Astfel, aplicația rămâne mai des activă, iar riscul de a pierde datele după
 
 - Seed automat pentru baza de date la startup (date demo în `utilizatori` și `filme` dacă tabelele sunt goale)
 - UI modernizat cu Bootstrap (hero section, carduri statistice, carduri interactive pentru filme, filtru de căutare)
+- Navigare separată în 3 ecrane în aplicație: Filme, Statistici, Profil
 - `README` actualizat cu instrucțiuni pentru date demo și explicație despre Render + UptimeRobot
 
 ## Troubleshooting
